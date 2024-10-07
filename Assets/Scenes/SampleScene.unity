@@ -153,6 +153,7 @@ MonoBehaviour:
   jumpSpeed: 8
   rotateSpeed: 4
   gravity: 20
+  raycastSource: {fileID: 379153602}
 --- !u!143 &83838684
 CharacterController:
   m_ObjectHideFlags: 0
@@ -193,6 +194,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 963194228}
+  - {fileID: 379153603}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &167483344
@@ -297,6 +299,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &379153602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 379153603}
+  m_Layer: 0
+  m_Name: JumpDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &379153603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 379153602}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.78, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 83838685}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -674,6 +707,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1669735541}
   - component: {fileID: 1669735540}
+  - component: {fileID: 1669735542}
   m_Layer: 0
   m_Name: Game World
   m_TagString: Untagged
@@ -694,6 +728,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ChunkPrefab: {fileID: 3660268983059591854, guid: a1e0e44407096bd478ffa59867015628, type: 3}
+  Generator: {fileID: 1669735542}
+  mainCamera: {fileID: 0}
+  currentPlayerChunk: {x: 0, y: 0}
 --- !u!4 &1669735541
 Transform:
   m_ObjectHideFlags: 0
@@ -709,6 +746,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1669735542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1669735539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc13f12bba7271a48b2eb7c26f4842e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BaseHeight: 8
+  Octaves:
+  - NoiseType: 0
+    Frequency: 0.25
+    Amplitude: 0.5
+  - NoiseType: 0
+    Frequency: 0.0333
+    Amplitude: 10
+  - NoiseType: 3
+    Frequency: 0.04
+    Amplitude: 3
+  DomainWarp:
+    NoiseType: 0
+    Frequency: 0.06
+    Amplitude: 15
 --- !u!1 &1755216243
 GameObject:
   m_ObjectHideFlags: 0

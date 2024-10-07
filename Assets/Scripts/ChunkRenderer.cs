@@ -101,15 +101,40 @@ public class ChunkRenderer : MonoBehaviour
     public void GenerateBlock(int x, int y, int z)
     {
         Vector3Int blockPosition = new Vector3Int(x, y, z);
-        
-        if (GetBlockAtPosition(blockPosition) == 0) return; 
 
-        if(GetBlockAtPosition(blockPosition + Vector3Int.right) == 0) GenerateRightSide(blockPosition);
-        if (GetBlockAtPosition(blockPosition + Vector3Int.left) == 0) GenerateLeftSide(blockPosition);
-        if (GetBlockAtPosition(blockPosition + Vector3Int.forward) == 0) GenerateFrontSide(blockPosition);
-        if (GetBlockAtPosition(blockPosition + Vector3Int.back) == 0) GenerateBackSide(blockPosition);
-        if (GetBlockAtPosition(blockPosition + Vector3Int.up) == 0) GenerateTopSide(blockPosition);
-        if (GetBlockAtPosition(blockPosition + Vector3Int.down) == 0) GenerateBottomSide(blockPosition);
+        BlockType blockType = GetBlockAtPosition(blockPosition);
+        if (blockType == BlockType.Air) return;
+
+        if (GetBlockAtPosition(blockPosition + Vector3Int.right) == 0)
+        {
+            GenerateRightSide(blockPosition);
+            AddUvs(blockType);
+        }
+        if (GetBlockAtPosition(blockPosition + Vector3Int.left) == 0)
+        {
+            GenerateLeftSide(blockPosition);
+            AddUvs(blockType);
+        }
+        if (GetBlockAtPosition(blockPosition + Vector3Int.forward) == 0)
+        {
+            GenerateFrontSide(blockPosition);
+            AddUvs(blockType);
+        }
+        if (GetBlockAtPosition(blockPosition + Vector3Int.back) == 0)
+        {
+            GenerateBackSide(blockPosition);
+            AddUvs(blockType);
+        }
+        if (GetBlockAtPosition(blockPosition + Vector3Int.up) == 0)
+        {
+            GenerateTopSide(blockPosition);
+            AddUvs(blockType);
+        }
+        if (GetBlockAtPosition(blockPosition + Vector3Int.down) == 0)
+        {
+            GenerateBottomSide(blockPosition);
+            AddUvs(blockType);
+        }
     }
     
     private void GenerateRightSide(Vector3Int blockPosition)
@@ -169,11 +194,8 @@ public class ChunkRenderer : MonoBehaviour
 
     private void AddLastVerticiesSquare()
     {
-        uvs.Add(new Vector2(0f/256, 240f/256));
-        uvs.Add(new Vector2(0f/256, 256f/256));
-        uvs.Add(new Vector2(16f/256, 240f/256));
-        uvs.Add(new Vector2(16f/256, 256f/256));
         
+
         triangles.Add(verticies.Count - 4);
         triangles.Add(verticies.Count - 3);
         triangles.Add(verticies.Count - 2);
@@ -192,5 +214,27 @@ public class ChunkRenderer : MonoBehaviour
         verticies.Add((new Vector3(0, 1, 1) + blockPosition)*BlockScale);
 
         AddLastVerticiesSquare();
+    }
+
+    private void AddUvs(BlockType blockType)
+    {
+        Vector2 uv;
+        if(blockType == BlockType.Grass)
+        {
+            uv = new Vector2(0f / 256, 240f / 256);
+        }
+        else if(blockType == BlockType.Unknown)
+        {
+            uv = new Vector2(32f / 256, 240f / 256);
+        }
+        else
+        {
+            uv = new Vector2(32f / 256, 240f / 256);
+        }
+
+        for(int i = 0; i < 4; i++)
+        {
+            uvs.Add(uv);
+        }
     }
 }

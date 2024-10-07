@@ -5,4 +5,5 @@ public class ChunkData
 {
     public Vector2Int ChunkPosition;
     public BlockType[,,] Blocks;
+    public ChunkRenderer Renderer;
 }
