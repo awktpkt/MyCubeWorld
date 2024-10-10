@@ -2,11 +2,14 @@ using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Overlays;
 using UnityEngine;
 
-public class TerrainGenerator : MonoBehaviour
+[CreateAssetMenu(menuName = "MyCubeWorld/Generator")]
+public class TerrainGenerator : ScriptableObject
 {
     public float BaseHeight = 8;
+    public BlockType upperLayer;
     public NoiseOctaveSettings[] Octaves;
     public NoiseOctaveSettings DomainWarp;
     
@@ -20,11 +23,6 @@ public class TerrainGenerator : MonoBehaviour
 
     private FastNoiseLite[] octaveNoises;
     private FastNoiseLite warpNoise;
-
-    public void Awake()
-    {
-        Init();
-    }
 
     public void Init()
     {
@@ -42,27 +40,29 @@ public class TerrainGenerator : MonoBehaviour
         warpNoise.SetDomainWarpAmp(DomainWarp.Amplitude);
     }
 
-    public BlockType[,,] GenerateTerrain(float xOffset, float yOffset)
+    public BlockType[] GenerateTerrain(float xOffset, float yOffset)
     {
         
-        BlockType[,,] result = new BlockType[ChunkRenderer.ChunkWidth, ChunkRenderer.ChunkHeight, ChunkRenderer.ChunkWidth];
+        BlockType[] result = new BlockType[MeshBuilder.ChunkWidth * MeshBuilder.ChunkHeight * MeshBuilder.ChunkWidth];
 
-        for(int x = 0; x < ChunkRenderer.ChunkWidth; x++)
+        for(int x = 0; x < MeshBuilder.ChunkWidth; x++)
         {
-            for(int z = 0; z < ChunkRenderer.ChunkWidth; z++)
+            for(int z = 0; z < MeshBuilder.ChunkWidth; z++)
             {
-                float height = GetHeight(x * ChunkRenderer.BlockScale + xOffset, z * ChunkRenderer.BlockScale + yOffset);
+                float height = GetHeight(x * MeshBuilder.BlockScale + xOffset, z * MeshBuilder.BlockScale + yOffset);
                 float grassLayerHeight = 1;
 
-                for(int y = 0; y < height / ChunkRenderer.BlockScale; y++)
+                for (int y = 0; y < height / MeshBuilder.BlockScale; y++)
                 {
-                    if(height - y*ChunkRenderer.BlockScale < grassLayerHeight)
+                    int index = x + y * MeshBuilder.ChunkWidthSq + z * MeshBuilder.ChunkWidth;
+
+                    if (height - y* MeshBuilder.BlockScale < grassLayerHeight)
                     {
-                        result[x, y, z] = BlockType.Grass;
+                        result[index] = upperLayer;
                     }
                     else
                     {
-                        result[x, y, z] = BlockType.Unknown;
+                        result[index] = BlockType.Unknown;
                     }
                 }
             }

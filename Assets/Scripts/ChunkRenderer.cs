@@ -1,50 +1,74 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class ChunkRenderer : MonoBehaviour
 {
 
-    public const int ChunkWidth = 20;
-    public const int ChunkHeight = 128;
-    public const float BlockScale = .5f;
-
     public ChunkData ChunkData;
     public GameWorld ParentWorld;
 
+    public BlockDatabase Blocks;
+
+    private Mesh chunkMesh;
+
     private List<Vector3> verticies = new List<Vector3>();
     private List<Vector2> uvs = new List<Vector2>();
-    private List<int> triangles = new List<int>();
 
-    // Start is called before the first frame update
-    void Start()
+    private static int[] triangles;
+
+    public static void InitTriangles()
     {
-        Mesh chunkMesh = new Mesh();
+        triangles = new int[65536 * 6 / 4];
 
-        for(int y = 0; y < ChunkHeight; y++)
+        int vertexNum = 4;
+        for(int i = 0; i < triangles.Length; i += 6)
         {
-            for (int x = 0; x < ChunkWidth; x++)
-            {
-                for(int z = 0; z < ChunkWidth; z++)
-                {
-                    GenerateBlock(x,y,z);
-                }
-            }
+            triangles[i] = vertexNum - 4;
+            triangles[i + 1] = vertexNum - 3;
+            triangles[i + 2] = vertexNum - 2;
+            triangles[i + 3] = vertexNum - 3;
+            triangles[i + 4] = vertexNum - 1;
+            triangles[i + 5] = vertexNum - 2;
+
+            vertexNum += 4;
         }
-
-        chunkMesh.vertices = verticies.ToArray();
-        chunkMesh.uv = uvs.ToArray();
-        chunkMesh.triangles = triangles.ToArray();
-
-        chunkMesh.Optimize();
-
-        chunkMesh.RecalculateBounds();
-        chunkMesh.RecalculateNormals();
+    }
+    
+    // Start is called before the first frame update
+    void Awake()
+    {
+        
+        chunkMesh = new Mesh();
 
         GetComponent<MeshFilter>().mesh = chunkMesh;
-        GetComponent<MeshCollider>().sharedMesh = chunkMesh;
+    }
 
+    public void SetMesh(GameWorld.GeneratedMeshData meshData)
+    {
+
+        VertexAttributeDescriptor[] layout = new VertexAttributeDescriptor[]
+        {
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.UNorm16, 2)
+        };
+
+        chunkMesh.SetVertexBufferParams(meshData.Vertices.Length, layout);
+        chunkMesh.SetVertexBufferData(meshData.Vertices,0,0,meshData.Vertices.Length,0,MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontResetBoneBounds);
+
+        int trianglesCount = meshData.Vertices.Length / 4 * 6;
+
+        chunkMesh.SetIndexBufferParams(trianglesCount, IndexFormat.UInt32);
+        chunkMesh.SetIndexBufferData(triangles, 0, 0, trianglesCount, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontResetBoneBounds);
+
+        chunkMesh.subMeshCount = 1;
+        chunkMesh.SetSubMesh(0, new SubMeshDescriptor(0, trianglesCount));
+
+        chunkMesh.bounds = meshData.Bounds;
+
+        GetComponent<MeshCollider>().sharedMesh = chunkMesh;
     }
 
     // Update is called once per frame
@@ -53,188 +77,4 @@ public class ChunkRenderer : MonoBehaviour
         
     }
 
-    private BlockType GetBlockAtPosition(Vector3Int blockPosition)
-    {
-        if(blockPosition.x >= 0 && blockPosition.x < ChunkWidth &&
-           blockPosition.y >= 0 && blockPosition.y < ChunkHeight &&
-           blockPosition.z >= 0 && blockPosition.z < ChunkWidth)
-        {
-            return ChunkData.Blocks[blockPosition.x, blockPosition.y, blockPosition.z];
-        }
-        else
-        {
-            if (blockPosition.y < 0 || blockPosition.y >= ChunkHeight) return BlockType.Air;
-            
-            Vector2Int adjacentChunkPosition = ChunkData.ChunkPosition;
-            if(blockPosition.x < 0)
-            {
-                adjacentChunkPosition.x--;
-                blockPosition.x += ChunkWidth;
-            }
-            else if (blockPosition.x >= ChunkWidth)
-            {
-                adjacentChunkPosition.x++;
-                blockPosition.x -= ChunkWidth;
-            }
-            if (blockPosition.z < 0)
-            {
-                adjacentChunkPosition.y--;
-                blockPosition.z += ChunkWidth;
-            }
-            else if (blockPosition.z >= ChunkWidth)
-            {
-                adjacentChunkPosition.y++;
-                blockPosition.z -= ChunkWidth;
-            }
-
-            if(ParentWorld.ChunkDatas.TryGetValue(adjacentChunkPosition, out ChunkData adjacentChunk))
-            {
-                return adjacentChunk.Blocks[blockPosition.x, blockPosition.y, blockPosition.z];
-            }
-            else
-            {
-                return BlockType.Air;
-            }
-        }
-    }
-
-    public void GenerateBlock(int x, int y, int z)
-    {
-        Vector3Int blockPosition = new Vector3Int(x, y, z);
-
-        BlockType blockType = GetBlockAtPosition(blockPosition);
-        if (blockType == BlockType.Air) return;
-
-        if (GetBlockAtPosition(blockPosition + Vector3Int.right) == 0)
-        {
-            GenerateRightSide(blockPosition);
-            AddUvs(blockType);
-        }
-        if (GetBlockAtPosition(blockPosition + Vector3Int.left) == 0)
-        {
-            GenerateLeftSide(blockPosition);
-            AddUvs(blockType);
-        }
-        if (GetBlockAtPosition(blockPosition + Vector3Int.forward) == 0)
-        {
-            GenerateFrontSide(blockPosition);
-            AddUvs(blockType);
-        }
-        if (GetBlockAtPosition(blockPosition + Vector3Int.back) == 0)
-        {
-            GenerateBackSide(blockPosition);
-            AddUvs(blockType);
-        }
-        if (GetBlockAtPosition(blockPosition + Vector3Int.up) == 0)
-        {
-            GenerateTopSide(blockPosition);
-            AddUvs(blockType);
-        }
-        if (GetBlockAtPosition(blockPosition + Vector3Int.down) == 0)
-        {
-            GenerateBottomSide(blockPosition);
-            AddUvs(blockType);
-        }
-    }
-    
-    private void GenerateRightSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(1, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 0, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 1) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-                 
-    private void GenerateFrontSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(0, 0, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 0, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 1, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 1) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-                 
-    private void GenerateBackSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(0, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 1, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 0) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-    
-    private void GenerateTopSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(0, 1, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 1, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 1, 1) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-    private void GenerateBottomSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(0, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 0, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(1, 0, 1) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-
-
-    private void AddLastVerticiesSquare()
-    {
-        
-
-        triangles.Add(verticies.Count - 4);
-        triangles.Add(verticies.Count - 3);
-        triangles.Add(verticies.Count - 2);
-
-        triangles.Add(verticies.Count - 3);
-        triangles.Add(verticies.Count - 1);
-        triangles.Add(verticies.Count - 2);
-    }
-
-    private void GenerateLeftSide(Vector3Int blockPosition)
-    {
-
-        verticies.Add((new Vector3(0, 0, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 0, 1) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 1, 0) + blockPosition)*BlockScale);
-        verticies.Add((new Vector3(0, 1, 1) + blockPosition)*BlockScale);
-
-        AddLastVerticiesSquare();
-    }
-
-    private void AddUvs(BlockType blockType)
-    {
-        Vector2 uv;
-        if(blockType == BlockType.Grass)
-        {
-            uv = new Vector2(0f / 256, 240f / 256);
-        }
-        else if(blockType == BlockType.Unknown)
-        {
-            uv = new Vector2(32f / 256, 240f / 256);
-        }
-        else
-        {
-            uv = new Vector2(32f / 256, 240f / 256);
-        }
-
-        for(int i = 0; i < 4; i++)
-        {
-            uvs.Add(uv);
-        }
-    }
 }

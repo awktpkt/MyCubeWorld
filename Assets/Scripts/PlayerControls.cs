@@ -53,6 +53,11 @@ public class PlayerControls : MonoBehaviour
             speed = 6.0f;
         }
 
+        if(!isFlying && speed != 6.0f)
+        {
+            speed = 6.0f;
+        }
+
         moveDirection = new Vector3(Input.GetAxis("Horizontal") * speed, moveDirection.y, Input.GetAxis("Vertical") * speed);
         moveDirection = transform.TransformDirection(moveDirection);
 
@@ -72,17 +77,17 @@ public class PlayerControls : MonoBehaviour
         moveDirection.y -= gravity * Time.deltaTime;
         controller.Move(moveDirection * Time.deltaTime);
 
-        if (!Physics.Raycast(new Vector3(raycastSource.transform.position.x,raycastSource.transform.position.y+ChunkRenderer.BlockScale,raycastSource.transform.position.z), transform.forward, out RaycastHit hit1, ChunkRenderer.BlockScale * 1.5f) && Physics.Raycast(raycastSource.transform.position, transform.forward, out RaycastHit hit2, ChunkRenderer.BlockScale*1.5f) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+        if (!Physics.Raycast(new Vector3(raycastSource.transform.position.x,raycastSource.transform.position.y+MeshBuilder.BlockScale,raycastSource.transform.position.z), transform.forward, out RaycastHit hit1, MeshBuilder.BlockScale * 1.5f) && Physics.Raycast(raycastSource.transform.position, transform.forward, out RaycastHit hit2, MeshBuilder.BlockScale*1.5f) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
         {
             if (hit2.collider.CompareTag("Ground"))
             {
-                Vector3 newPos = new Vector3(transform.position.x,transform.position.y + ChunkRenderer.BlockScale,transform.position.z);
+                Vector3 newPos = new Vector3(transform.position.x,transform.position.y + MeshBuilder.BlockScale,transform.position.z);
                 transform.position = newPos;
             }
         }
 
         Debug.DrawRay(raycastSource.transform.position, transform.forward,Color.red);
-        Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + ChunkRenderer.BlockScale, raycastSource.transform.position.z), transform.forward,Color.blue);
+        Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z), transform.forward,Color.blue);
 
     }
 }

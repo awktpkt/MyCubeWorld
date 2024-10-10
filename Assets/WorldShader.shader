@@ -1,6 +1,7 @@
 Shader "WorldShader" {
     Properties {
         _MainTex ("Base (RGB)", 2D) = "white" {}
+        _TextureScale ("Texture scale", float) = 1
         //[NoScaleOffset] _BumpMap ("Normalmap", 2D) = "bump" {}
     }
 
@@ -12,6 +13,7 @@ Shader "WorldShader" {
         #pragma surface surf Lambert noforwardadd
 
         sampler2D _MainTex;
+        float _TextureScale;
         //sampler2D _BumpMap;
 
         struct Input {
@@ -29,7 +31,7 @@ Shader "WorldShader" {
             
             float isUp = abs(IN.worldNormal.y);
 
-            float2 offset = float2(my_fmod(IN.worldPos.z*0.125 + IN.worldPos.x*0.125 * (1 - isUp),0.0625), my_fmod(IN.worldPos.y*0.125 + IN.worldPos.x*0.125 * isUp,0.0625));
+            float2 offset = float2(my_fmod(IN.worldPos.z*_TextureScale + IN.worldPos.x*_TextureScale * (1 - isUp),0.0625), my_fmod(IN.worldPos.y*_TextureScale + IN.worldPos.x*_TextureScale * isUp,0.0625));
             fixed4 c = tex2D(_MainTex, IN.uv_MainTex + offset);
             o.Albedo = c.rgb;
             o.Alpha = 1;

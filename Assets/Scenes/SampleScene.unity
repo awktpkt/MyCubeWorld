@@ -707,7 +707,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1669735541}
   - component: {fileID: 1669735540}
-  - component: {fileID: 1669735542}
   m_Layer: 0
   m_Name: Game World
   m_TagString: Untagged
@@ -728,7 +727,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ChunkPrefab: {fileID: 3660268983059591854, guid: a1e0e44407096bd478ffa59867015628, type: 3}
-  Generator: {fileID: 1669735542}
+  Generator: {fileID: 11400000, guid: 0875059417b504d478c5ba5b229f1884, type: 2}
   mainCamera: {fileID: 0}
   currentPlayerChunk: {x: 0, y: 0}
 --- !u!4 &1669735541
@@ -746,33 +745,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1669735542
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1669735539}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc13f12bba7271a48b2eb7c26f4842e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BaseHeight: 8
-  Octaves:
-  - NoiseType: 0
-    Frequency: 0.25
-    Amplitude: 0.5
-  - NoiseType: 0
-    Frequency: 0.0333
-    Amplitude: 10
-  - NoiseType: 3
-    Frequency: 0.04
-    Amplitude: 3
-  DomainWarp:
-    NoiseType: 0
-    Frequency: 0.06
-    Amplitude: 15
 --- !u!1 &1755216243
 GameObject:
   m_ObjectHideFlags: 0
