@@ -12,14 +12,12 @@ public class PlayerControls : MonoBehaviour
     private bool isFlying;
 
     private CharacterController controller;
-    private Transform playerCamera;
 
     public GameObject raycastSource;
 
     private void Start()
     {
         controller = GetComponent<CharacterController>();
-        playerCamera = GetComponentInChildren<Camera>().transform;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -36,13 +34,13 @@ public class PlayerControls : MonoBehaviour
             isFlying = !isFlying;
             gravity = 0.0f;
         }
-        transform.Rotate(0, Input.GetAxis("Mouse X") * rotateSpeed, 0);
+        //transform.Rotate(0, Input.GetAxis("Mouse X") * rotateSpeed, 0);
 
-        playerCamera.Rotate(-Input.GetAxis("Mouse Y") * rotateSpeed, 0, 0);
-        if (playerCamera.localRotation.eulerAngles.y != 0)
-        {
-            playerCamera.Rotate(Input.GetAxis("Mouse Y") * rotateSpeed, 0, 0);
-        }
+        //playerCamera.Rotate(-Input.GetAxis("Mouse Y") * rotateSpeed, 0, 0);
+        //if (playerCamera.localRotation.eulerAngles.y != 0)
+        //{
+        //    playerCamera.Rotate(Input.GetAxis("Mouse Y") * rotateSpeed, 0, 0);
+        //}
 
         if (isFlying && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
         {
@@ -77,17 +75,47 @@ public class PlayerControls : MonoBehaviour
         moveDirection.y -= gravity * Time.deltaTime;
         controller.Move(moveDirection * Time.deltaTime);
 
-        if (!Physics.Raycast(new Vector3(raycastSource.transform.position.x,raycastSource.transform.position.y+MeshBuilder.BlockScale,raycastSource.transform.position.z), transform.forward, out RaycastHit hit1, MeshBuilder.BlockScale * 1.5f) && Physics.Raycast(raycastSource.transform.position, transform.forward, out RaycastHit hit2, MeshBuilder.BlockScale*1.5f) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+        Vector3 upperRaySource = new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z);
+        float rayDistance = MeshBuilder.BlockScale * 1.5f;
+        Vector3 newPos = new Vector3(transform.position.x, transform.position.y + MeshBuilder.BlockScale, transform.position.z);
+
+        if (!Physics.Raycast(upperRaySource, transform.forward, rayDistance) && Physics.Raycast(raycastSource.transform.position, transform.forward, out RaycastHit hit1, rayDistance) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+        {
+            if (hit1.collider.CompareTag("Ground"))
+            {
+                transform.position = newPos;
+            }
+        }
+        if (!Physics.Raycast(upperRaySource, -transform.forward, rayDistance) && Physics.Raycast(raycastSource.transform.position, -transform.forward, out RaycastHit hit2, rayDistance) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
         {
             if (hit2.collider.CompareTag("Ground"))
             {
-                Vector3 newPos = new Vector3(transform.position.x,transform.position.y + MeshBuilder.BlockScale,transform.position.z);
+                transform.position = newPos;
+            }
+        }
+        if (!Physics.Raycast(upperRaySource, transform.right, rayDistance) && Physics.Raycast(raycastSource.transform.position, transform.right, out RaycastHit hit3, rayDistance) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+        {
+            if (hit3.collider.CompareTag("Ground"))
+            {
+                transform.position = newPos;
+            }
+        }
+        if (!Physics.Raycast(upperRaySource, -transform.right, rayDistance) && Physics.Raycast(raycastSource.transform.position, -transform.right, out RaycastHit hit4, rayDistance) && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+        {
+            if (hit4.collider.CompareTag("Ground"))
+            {
                 transform.position = newPos;
             }
         }
 
         Debug.DrawRay(raycastSource.transform.position, transform.forward,Color.red);
         Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z), transform.forward,Color.blue);
+        Debug.DrawRay(raycastSource.transform.position, -transform.forward, Color.red);
+        Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z), -transform.forward, Color.blue);
+        Debug.DrawRay(raycastSource.transform.position, transform.right, Color.red);
+        Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z), transform.right, Color.blue);
+        Debug.DrawRay(raycastSource.transform.position, -transform.right, Color.red);
+        Debug.DrawRay(new Vector3(raycastSource.transform.position.x, raycastSource.transform.position.y + MeshBuilder.BlockScale, raycastSource.transform.position.z), -transform.right, Color.blue);
 
     }
 }
